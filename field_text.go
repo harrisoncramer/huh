@@ -492,3 +492,10 @@ func (t *Text) GetKey() string { return t.key }
 func (t *Text) GetValue() any {
 	return t.accessor.Get()
 }
+
+// Edit runs fn on the text field's textarea and writes the result through to
+// the field's value.
+func (t *Text) Edit(fn func(*textarea.Model)) {
+	fn(&t.textarea)
+	t.accessor.Set(t.textarea.Value())
+}

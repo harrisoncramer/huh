@@ -513,3 +513,10 @@ func (i *Input) GetKey() string { return i.key }
 func (i *Input) GetValue() any {
 	return i.accessor.Get()
 }
+
+// Edit runs fn on the input's text model and writes the result through to the
+// field's value.
+func (i *Input) Edit(fn func(*textinput.Model)) {
+	fn(&i.textinput)
+	i.accessor.Set(i.textinput.Value())
+}
