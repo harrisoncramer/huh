@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
@@ -720,6 +721,18 @@ func TestMultiSelectLockedOption(t *testing.T) {
 	batchUpdate(f.Update(tea.KeyPressMsg(tea.Key{Code: 'a', Mod: tea.ModCtrl})))
 	if !reflect.DeepEqual(chosen, []string{"Foo"}) {
 		t.Errorf("Expected select none to leave the locked option selected, got %v.", chosen)
+	}
+
+	keymap := NewDefaultKeyMap()
+	keymap.MultiSelect.Toggle = key.NewBinding(key.WithKeys("x", "enter"))
+	f = NewForm(NewGroup(NewMultiSelect[string]().
+		Options(NewOption("Foo", "Foo").Locked(true)).
+		Value(&chosen))).WithKeyMap(keymap)
+	f.Update(f.Init())
+
+	batchUpdate(f.Update(tea.KeyPressMsg(tea.Key{Code: tea.KeyEnter})))
+	if f.State != StateNormal {
+		t.Errorf("Expected a toggle press on the locked option to keep the form open, got state %v.", f.State)
 	}
 }
 
