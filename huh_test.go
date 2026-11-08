@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -695,6 +696,30 @@ func TestMultiSelect(t *testing.T) {
 		if v[0] != "Bar\nLine2" {
 			t.Error("Expected first field value to be Bar")
 		}
+	}
+}
+
+func TestMultiSelectLockedOption(t *testing.T) {
+	chosen := []string{"Foo"}
+	field := NewMultiSelect[string]().
+		Options(NewOption("Foo", "Foo").Locked(true), NewOption("Bar", "Bar")).
+		Value(&chosen)
+	f := NewForm(NewGroup(field))
+	f.Update(f.Init())
+
+	batchUpdate(f.Update(keypress('x')))
+	if !reflect.DeepEqual(chosen, []string{"Foo"}) {
+		t.Errorf("Expected toggle to leave the locked option selected, got %v.", chosen)
+	}
+
+	batchUpdate(f.Update(tea.KeyPressMsg(tea.Key{Code: 'a', Mod: tea.ModCtrl})))
+	if !reflect.DeepEqual(chosen, []string{"Foo", "Bar"}) {
+		t.Errorf("Expected select all to select the unlocked option, got %v.", chosen)
+	}
+
+	batchUpdate(f.Update(tea.KeyPressMsg(tea.Key{Code: 'a', Mod: tea.ModCtrl})))
+	if !reflect.DeepEqual(chosen, []string{"Foo"}) {
+		t.Errorf("Expected select none to leave the locked option selected, got %v.", chosen)
 	}
 }
 

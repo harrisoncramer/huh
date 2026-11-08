@@ -7,6 +7,7 @@ type Option[T comparable] struct {
 	Key      string
 	Value    T
 	selected bool
+	locked   bool
 }
 
 // NewOptions returns new options from a list of values.
@@ -29,6 +30,12 @@ func NewOption[T comparable](key string, value T) Option[T] {
 // Selected sets whether the option is currently selected.
 func (o Option[T]) Selected(selected bool) Option[T] {
 	o.selected = selected
+	return o
+}
+
+// Locked sets whether the option keeps its selection, drawn in the locked style.
+func (o Option[T]) Locked(locked bool) Option[T] {
+	o.locked = locked
 	return o
 }
 

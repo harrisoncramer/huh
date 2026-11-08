@@ -420,7 +420,7 @@ func (m *MultiSelect[T]) Update(msg tea.Msg) (Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.HalfPageDown):
 			m.cursor = min(m.cursor+m.viewport.Height()/2, len(m.filteredOptions)-1)
 			m.ensureCursorVisible()
-		case key.Matches(msg, m.keymap.Toggle) && !m.filtering:
+		case key.Matches(msg, m.keymap.Toggle) && !m.filtering && !m.filteredOptions[m.cursor].locked:
 			for i, option := range m.options.val {
 				if option.Key == m.filteredOptions[m.cursor].Key {
 					if !m.options.val[m.cursor].selected && m.limit > 0 && m.numSelected() >= m.limit {
@@ -437,13 +437,16 @@ func (m *MultiSelect[T]) Update(msg tea.Msg) (Model, tea.Cmd) {
 			selected := false
 
 			for _, option := range m.filteredOptions {
-				if !option.selected {
+				if !option.selected && !option.locked {
 					selected = true
 					break
 				}
 			}
 
 			for i, option := range m.options.val {
+				if option.locked {
+					continue
+				}
 				for j := range m.filteredOptions {
 					if option.Key == m.filteredOptions[j].Key {
 						m.options.val[i].selected = selected
@@ -598,7 +601,13 @@ func (m *MultiSelect[T]) renderOption(option Option[T], cursor, selected bool) s
 	} else {
 		parts = append(parts, strings.Repeat(" ", lipgloss.Width(styles.MultiSelectSelector.String())))
 	}
-	if selected {
+	if option.locked {
+		prefix := styles.UnselectedPrefix.Value()
+		if selected {
+			prefix = styles.SelectedPrefix.Value()
+		}
+		parts = append(parts, styles.LockedOption.Render(prefix), styles.LockedOption.Render(option.Key))
+	} else if selected {
 		parts = append(parts, styles.SelectedPrefix.String())
 		parts = append(parts, styles.SelectedOption.Render(option.Key))
 	} else {
@@ -764,6 +773,11 @@ func (m *MultiSelect[T]) RunAccessible(w io.Writer, r io.Reader) error {
 			break
 		}
 
+		if m.options.val[choice-1].locked {
+			_, _ = fmt.Fprintln(w, "That option can't be changed.")
+			_, _ = fmt.Fprintln(w)
+			continue
+		}
 		if !m.options.val[choice-1].selected && m.limit > 0 && m.numSelected() >= m.limit {
 			_, _ = fmt.Fprintf(w, "You can't select more than %d options.\n", m.limit)
 			_, _ = fmt.Fprintln(w)

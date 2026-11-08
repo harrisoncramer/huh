@@ -66,6 +66,7 @@ type FieldStyles struct {
 	SelectedPrefix      lipgloss.Style
 	UnselectedOption    lipgloss.Style
 	UnselectedPrefix    lipgloss.Style
+	LockedOption        lipgloss.Style // Prefix and key of an option that keeps its selection
 
 	// Textinput and teatarea styles.
 	TextInput TextInputStyles
@@ -118,6 +119,7 @@ func ThemeBase(bool) *Styles {
 	t.Focused.MultiSelectSelector = lipgloss.NewStyle().SetString("> ")
 	t.Focused.SelectedPrefix = lipgloss.NewStyle().SetString("[•] ")
 	t.Focused.UnselectedPrefix = lipgloss.NewStyle().SetString("[ ] ")
+	t.Focused.LockedOption = lipgloss.NewStyle().Faint(true)
 	t.Focused.FocusedButton = button.Foreground(lipgloss.Color("0")).Background(lipgloss.Color("7"))
 	t.Focused.BlurredButton = button.Foreground(lipgloss.Color("7")).Background(lipgloss.Color("0"))
 	t.Focused.TextInput.Placeholder = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
